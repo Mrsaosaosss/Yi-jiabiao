@@ -37,7 +37,7 @@
 
 ## Phase 5: macOS HUD
 
-1. Implement the Swift/AppKit status-bar application and observer client.
+1. Implement the AppKit status-bar application and observer client.
 2. Implement notch detection, collapsed and expanded states, priority selection, full-screen behavior, and menu-bar fallback.
 3. Add dashboard and Codex task deep links.
 4. Add login-startup preference with explicit opt-in.

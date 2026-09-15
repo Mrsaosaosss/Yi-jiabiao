@@ -51,7 +51,7 @@ The personal plugin contains:
 - An MCP server declaration used by Codex to start and inspect the dashboard.
 - A skill that teaches Codex when and how to open the dashboard.
 - A Python standard-library local observer and HTTP/SSE server.
-- A Swift/AppKit macOS HUD application and its source.
+- An AppKit macOS HUD application and its source.
 - Scripts for building, launching, stopping, and validating the local components.
 - User-facing installation and troubleshooting documentation.
 
@@ -83,7 +83,7 @@ The dashboard is a framework-free HTML/CSS/JavaScript single page served by the 
 
 ### 4.4 macOS notch HUD
 
-The HUD is a small Swift/AppKit menu-bar application. On a built-in display with a notch, it places a non-activating panel immediately below the notch. On unsupported or external displays, it presents the same compact content from a normal menu-bar status item.
+The HUD is a small AppKit menu-bar application. On a built-in display with a notch, it places a non-activating panel immediately below the notch. On unsupported or external displays, it presents the same compact content from a normal menu-bar status item.
 
 The collapsed HUD shows:
 
@@ -224,7 +224,7 @@ The observer exits after a configurable idle period when it has no browser, HUD,
 - HTTP security-header and capability-token tests.
 - SSE snapshot, deduplication, reconnect, and stale-state tests.
 - Static UI behavior tests for filtering, ordering, and rendering.
-- Swift tests for HUD state selection and fallback layout calculations.
+- Native AppKit tests for HUD state selection and fallback layout calculations.
 
 ### Integration and manual verification
 

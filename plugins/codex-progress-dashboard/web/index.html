@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Codex 任务进度</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <main class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">CODEX · LOCAL OBSERVER</p>
+          <h1>任务正在发生</h1>
+          <p class="hero-copy">所有本地 Codex 任务，在一个安静的实时视图里。</p>
+        </div>
+        <div class="connection" id="connection" role="status" aria-live="polite">
+          <span class="connection-dot"></span>
+          <span id="connection-label">正在连接</span>
+        </div>
+      </header>
+
+      <section class="summary-grid" aria-label="任务概览">
+        <button class="summary-card waiting" data-status-filter="waiting">
+          <span>等待确认</span><strong id="count-waiting">0</strong>
+        </button>
+        <button class="summary-card running" data-status-filter="running">
+          <span>运行中</span><strong id="count-running">0</strong>
+        </button>
+        <button class="summary-card failed" data-status-filter="failed">
+          <span>失败</span><strong id="count-failed">0</strong>
+        </button>
+        <button class="summary-card completed" data-status-filter="completed">
+          <span>最近完成</span><strong id="count-completed">0</strong>
+        </button>
+      </section>
+
+      <section class="controls" aria-label="筛选任务">
+        <label class="search-field">
+          <span aria-hidden="true">⌕</span>
+          <input id="search" type="search" placeholder="搜索任务或项目" autocomplete="off">
+        </label>
+        <label class="select-field">
+          <span>状态</span>
+          <select id="status-filter">
+            <option value="all">全部</option>
+            <option value="waiting">等待确认</option>
+            <option value="running">运行中</option>
+            <option value="failed">失败</option>
+            <option value="completed">最近完成</option>
+            <option value="interrupted">已中断</option>
+            <option value="idle">空闲</option>
+          </select>
+        </label>
+        <label class="select-field">
+          <span>项目</span>
+          <select id="project-filter"><option value="all">全部项目</option></select>
+        </label>
+      </section>
+
+      <section class="task-section" aria-labelledby="priority-heading">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">NOW</p>
+            <h2 id="priority-heading">需要关注</h2>
+          </div>
+          <span class="section-count" id="priority-count">0 个任务</span>
+        </div>
+        <div class="task-list" id="priority-list"></div>
+      </section>
+
+      <section class="task-section recent" aria-labelledby="recent-heading">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">LAST 24 HOURS</p>
+            <h2 id="recent-heading">最近完成</h2>
+          </div>
+          <span class="section-count" id="recent-count">0 个任务</span>
+        </div>
+        <div class="task-list" id="recent-list"></div>
+      </section>
+
+      <details class="task-section other" id="other-section">
+        <summary class="section-heading">
+          <div>
+            <p class="section-kicker">ALL LOCAL TASKS</p>
+            <h2>其他任务</h2>
+          </div>
+          <span class="section-count" id="other-count">0 个任务 · 点击展开</span>
+        </summary>
+        <div class="task-list" id="other-list"></div>
+      </details>
+
+      <section class="empty-state" id="empty-state" hidden>
+        <div class="empty-mark">◎</div>
+        <h2>这里暂时很安静</h2>
+        <p>没有符合当前筛选条件的任务。</p>
+      </section>
+
+      <footer>
+        <span id="freshness">尚未收到数据</span>
+        <span>只读 · 本机处理 · 不上传数据</span>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -242,6 +242,7 @@ class CodexSQLiteDataSource:
             thread_rows = state.execute(
                 """
                 SELECT id, rollout_path, cwd, created_at_ms, updated_at_ms,
+                       recency_at_ms,
                        title, preview, first_user_message, name
                 FROM threads
                 WHERE archived = 0
@@ -332,7 +333,13 @@ class CodexSQLiteDataSource:
             "interrupted": 4,
             "idle": 5,
         }
-        tasks.sort(key=lambda task: (priority[task["status"]], -task["updated_at"]))
+        tasks.sort(
+            key=lambda task: (
+                0 if task["status"] in {"waiting", "running"} else 1,
+                -task["recency_at"],
+                -task["updated_at"],
+            )
+        )
         summary = {key: 0 for key in priority}
         for task in tasks:
             summary[task["status"]] += 1
@@ -368,6 +375,7 @@ class CodexSQLiteDataSource:
         cwd = str(thread.get("cwd") or "")
         created_at = _milliseconds(thread.get("created_at_ms")) or 0
         updated_at = _milliseconds(thread.get("updated_at_ms")) or created_at
+        recency_at = _milliseconds(thread.get("recency_at_ms")) or updated_at
         latest_item_at = max((item["created_at_ms"] for item in items), default=0)
         updated_at = max(updated_at, latest_item_at)
 
@@ -449,6 +457,7 @@ class CodexSQLiteDataSource:
             "turn_started_at": started_at,
             "duration_ms": duration,
             "changed_file_count": len(changed_paths),
+            "recency_at": recency_at,
             "updated_at": updated_at,
             "created_at": created_at,
             "stale": False,

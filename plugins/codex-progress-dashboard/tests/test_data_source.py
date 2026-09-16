@@ -177,6 +177,24 @@ class CodexSQLiteDataSourceTests(unittest.TestCase):
         self.assertEqual(task["path_hint"], "Projects/running-task")
         self.assertEqual(task["deep_link"], "codex://threads/running-task")
 
+    def test_active_tasks_lead_and_recent_requests_fill_remaining_slots(self) -> None:
+        state = sqlite3.connect(self.root / "state_5.sqlite")
+        state.execute(
+            "UPDATE threads SET recency_at_ms = ? WHERE id = ?",
+            (NOW_MS + 5_000, "idle-task"),
+        )
+        state.commit()
+        state.close()
+
+        snapshot = CodexSQLiteDataSource(self.root).collect(now_ms=NOW_MS)
+
+        self.assertEqual(
+            [task["id"] for task in snapshot["tasks"][:3]],
+            ["waiting-task", "running-task", "idle-task"],
+        )
+        idle = next(task for task in snapshot["tasks"] if task["id"] == "idle-task")
+        self.assertEqual(idle["recency_at"], NOW_MS + 5_000)
+
     def test_missing_required_column_fails_closed(self) -> None:
         broken = sqlite3.connect(self.root / "state_6.sqlite")
         broken.execute("CREATE TABLE threads (id TEXT PRIMARY KEY)")

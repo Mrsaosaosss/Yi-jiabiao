@@ -21,6 +21,8 @@ After installation, start a new Codex task and ask:
 
 The HUD menu can enable login startup. That option is off by default.
 
+On a Mac with a display notch, the collapsed HUD is anchored to the physical notch and extends from it like a compact status island. Running and waiting tasks are shown first; any remaining slots are filled by the most recently requested Codex tasks.
+
 The full dashboard keeps active and recently completed work at the top. Historical idle and interrupted tasks remain available in the collapsed “Other tasks” section and through search or filters.
 
 ## Troubleshooting

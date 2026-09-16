@@ -191,13 +191,7 @@ static NSString *FormatDuration(NSDictionary *task) {
 - (NSArray<NSDictionary *> *)priorityTasks {
     NSArray *tasks = self.snapshot[@"tasks"];
     if (![tasks isKindOfClass:NSArray.class]) return @[];
-    NSMutableArray *result = [NSMutableArray array];
-    for (NSDictionary *task in tasks) {
-        NSString *status = task[@"status"];
-        if (![status isEqualToString:@"idle"] && ![status isEqualToString:@"completed"]) [result addObject:task];
-        if (result.count == 3) break;
-    }
-    return result;
+    return [tasks subarrayWithRange:NSMakeRange(0, MIN((NSUInteger)3, tasks.count))];
 }
 
 - (void)openDashboard {
@@ -234,6 +228,7 @@ static NSString *FormatDuration(NSDictionary *task) {
 @interface HUDView : NSView
 @property(nonatomic, weak) DashboardModel *model;
 @property(nonatomic, copy) void (^expansionHandler)(BOOL expanded);
+@property(nonatomic) CGFloat topInset;
 @end
 
 @implementation HUDView
@@ -277,28 +272,36 @@ static NSString *FormatDuration(NSDictionary *task) {
     [super drawRect:dirtyRect];
     CGFloat radius = self.model.expanded ? 24 : 17;
     [[NSColor colorWithWhite:0.025 alpha:0.95] setFill];
-    [[NSBezierPath bezierPathWithRoundedRect:NSInsetRect(self.bounds, 1, 1) xRadius:radius yRadius:radius] fill];
+    if (self.topInset > 0) {
+        NSRect bridge = NSMakeRect(1, 0, self.bounds.size.width - 2, self.topInset + radius);
+        NSRect body = NSMakeRect(1, self.topInset, self.bounds.size.width - 2, self.bounds.size.height - self.topInset - 1);
+        NSRectFill(bridge);
+        [[NSBezierPath bezierPathWithRoundedRect:body xRadius:radius yRadius:radius] fill];
+    } else {
+        [[NSBezierPath bezierPathWithRoundedRect:NSInsetRect(self.bounds, 1, 1) xRadius:radius yRadius:radius] fill];
+    }
+    CGFloat contentY = self.topInset;
     NSColor *white = NSColor.whiteColor;
     NSColor *secondary = [white colorWithAlphaComponent:0.58];
     [[self overallColor] setFill];
-    [[NSBezierPath bezierPathWithOvalInRect:NSMakeRect(13, self.model.expanded ? 18 : 15, 8, 8)] fill];
+    [[NSBezierPath bezierPathWithOvalInRect:NSMakeRect(13, contentY + (self.model.expanded ? 18 : 15), 8, 8)] fill];
 
     if (!self.model.expanded) {
-        [self drawLabel:@"Codex" rect:NSMakeRect(29, 9, 46, 20) font:[NSFont systemFontOfSize:12 weight:NSFontWeightSemibold] color:white alignment:NSTextAlignmentLeft];
-        [self drawLabel:[NSString stringWithFormat:@"%ld", (long)self.model.activeCount] rect:NSMakeRect(74, 9, 22, 20) font:[NSFont monospacedDigitSystemFontOfSize:12 weight:NSFontWeightBold] color:white alignment:NSTextAlignmentLeft];
+        [self drawLabel:@"Codex" rect:NSMakeRect(29, contentY + 9, 46, 20) font:[NSFont systemFontOfSize:12 weight:NSFontWeightSemibold] color:white alignment:NSTextAlignmentLeft];
+        [self drawLabel:[NSString stringWithFormat:@"%ld", (long)self.model.activeCount] rect:NSMakeRect(74, contentY + 9, 22, 20) font:[NSFont monospacedDigitSystemFontOfSize:12 weight:NSFontWeightBold] color:white alignment:NSTextAlignmentLeft];
         NSDictionary *lead = self.model.priorityTasks.firstObject;
-        if (lead) [self drawLabel:FormatDuration(lead) rect:NSMakeRect(96, 10, 48, 18) font:[NSFont monospacedDigitSystemFontOfSize:9 weight:NSFontWeightMedium] color:secondary alignment:NSTextAlignmentRight];
+        if (lead) [self drawLabel:FormatDuration(lead) rect:NSMakeRect(self.bounds.size.width - 58, contentY + 10, 48, 18) font:[NSFont monospacedDigitSystemFontOfSize:9 weight:NSFontWeightMedium] color:secondary alignment:NSTextAlignmentRight];
         return;
     }
 
-    [self drawLabel:@"Codex Tasks" rect:NSMakeRect(29, 12, 170, 22) font:[NSFont systemFontOfSize:14 weight:NSFontWeightBold] color:white alignment:NSTextAlignmentLeft];
-    [self drawLabel:self.model.connected ? @"实时" : @"重连中" rect:NSMakeRect(self.bounds.size.width - 70, 14, 50, 18) font:[NSFont systemFontOfSize:10 weight:NSFontWeightMedium] color:secondary alignment:NSTextAlignmentRight];
+    [self drawLabel:@"Codex Tasks" rect:NSMakeRect(29, contentY + 12, 170, 22) font:[NSFont systemFontOfSize:14 weight:NSFontWeightBold] color:white alignment:NSTextAlignmentLeft];
+    [self drawLabel:self.model.connected ? @"实时" : @"重连中" rect:NSMakeRect(self.bounds.size.width - 70, contentY + 14, 50, 18) font:[NSFont systemFontOfSize:10 weight:NSFontWeightMedium] color:secondary alignment:NSTextAlignmentRight];
     NSArray *tasks = self.model.priorityTasks;
     if (tasks.count == 0) {
-        [self drawLabel:@"当前没有需要关注的任务" rect:NSMakeRect(20, 66, self.bounds.size.width - 40, 22) font:[NSFont systemFontOfSize:12] color:secondary alignment:NSTextAlignmentCenter];
+        [self drawLabel:@"还没有可显示的任务" rect:NSMakeRect(20, contentY + 66, self.bounds.size.width - 40, 22) font:[NSFont systemFontOfSize:12] color:secondary alignment:NSTextAlignmentCenter];
     } else {
         [tasks enumerateObjectsUsingBlock:^(NSDictionary *task, NSUInteger index, BOOL *stop) {
-            CGFloat y = 48 + index * 45;
+            CGFloat y = contentY + 48 + index * 45;
             [[self colorForStatus:task[@"status"]] setFill];
             [[NSBezierPath bezierPathWithOvalInRect:NSMakeRect(15, y + 8, 7, 7)] fill];
             [self drawLabel:task[@"title"] ?: @"Untitled" rect:NSMakeRect(31, y, self.bounds.size.width - 115, 18) font:[NSFont systemFontOfSize:12 weight:NSFontWeightSemibold] color:white alignment:NSTextAlignmentLeft];
@@ -325,8 +328,9 @@ static NSString *FormatDuration(NSDictionary *task) {
     }
     NSPoint point = [self convertPoint:event.locationInWindow fromView:nil];
     NSArray *tasks = self.model.priorityTasks;
-    if (point.y >= 45 && point.y < 45 + tasks.count * 45) {
-        NSInteger index = (NSInteger)((point.y - 45) / 45);
+    CGFloat taskStart = self.topInset + 45;
+    if (point.y >= taskStart && point.y < taskStart + tasks.count * 45) {
+        NSInteger index = (NSInteger)((point.y - taskStart) / 45);
         if (index >= 0 && index < tasks.count) [self.model openTask:tasks[index]];
         return;
     }
@@ -405,9 +409,15 @@ static NSString *FormatDuration(NSDictionary *task) {
     BOOL hasNotch = screen.safeAreaInsets.top > 0
         && !NSIsEmptyRect(screen.auxiliaryTopLeftArea)
         && !NSIsEmptyRect(screen.auxiliaryTopRightArea);
-    NSSize size = expanded ? NSMakeSize(356, 224) : NSMakeSize(154, 38);
+    CGFloat topInset = hasNotch ? ceil(screen.safeAreaInsets.top) : 0;
+    CGFloat notchWidth = hasNotch
+        ? MAX(0, NSMinX(screen.auxiliaryTopRightArea) - NSMaxX(screen.auxiliaryTopLeftArea))
+        : 0;
+    CGFloat collapsedWidth = MAX(154, notchWidth + 12);
+    NSSize size = expanded ? NSMakeSize(356, 224 + topInset) : NSMakeSize(collapsedWidth, 38 + topInset);
     CGFloat x = hasNotch ? NSMidX(screen.frame) - size.width / 2 : NSMaxX(screen.visibleFrame) - size.width - 14;
-    CGFloat top = hasNotch ? NSMaxY(screen.frame) - screen.safeAreaInsets.top + 1 : NSMaxY(screen.visibleFrame) - 4;
+    CGFloat top = hasNotch ? NSMaxY(screen.frame) : NSMaxY(screen.visibleFrame) - 4;
+    self.hudView.topInset = topInset;
     [self.panel setFrame:NSMakeRect(x, top - size.height, size.width, size.height) display:YES animate:NO];
     [self.hudView setNeedsDisplay:YES];
 }

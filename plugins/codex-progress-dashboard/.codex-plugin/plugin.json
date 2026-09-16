@@ -1,6 +1,6 @@
 {
   "name": "codex-progress-dashboard",
-  "version": "0.1.0+codex.20260916034424",
+  "version": "0.1.0+codex.20260916064458",
   "description": "A private, read-only live dashboard and Mac notch HUD for local Codex tasks.",
   "author": {
     "name": "Jiabiao"
@@ -12,7 +12,10 @@
     "longDescription": "Monitor local Codex tasks in a private browser dashboard and an optional macOS notch HUD. The observer is read-only and never sends task data over the network.",
     "developerName": "Jiabiao",
     "category": "Productivity",
-    "capabilities": ["Interactive", "Read"],
+    "capabilities": [
+      "Interactive",
+      "Read"
+    ],
     "defaultPrompt": [
       "Open my Codex progress dashboard.",
       "Show the Codex progress HUD.",

@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR=${0:A:h}
 PLUGIN_ROOT=${SCRIPT_DIR:h}
-SOURCE_FILE="$PLUGIN_ROOT/macos/Sources/main.m"
+SOURCE_DIR="$PLUGIN_ROOT/macos/Sources"
 INFO_PLIST="$PLUGIN_ROOT/macos/Info.plist"
 BUILD_DIR="$PLUGIN_ROOT/macos/build"
 APP_DIR="$BUILD_DIR/CodexProgressHUD.app"
@@ -19,7 +19,8 @@ clang \
   -mmacosx-version-min=13.0 \
   -framework Cocoa \
   -framework CoreGraphics \
-  "$SOURCE_FILE" \
+  -framework QuartzCore \
+  "$SOURCE_DIR"/*.m \
   -o "$MACOS_DIR/CodexProgressHUD"
 cp "$INFO_PLIST" "$CONTENTS_DIR/Info.plist"
 codesign --force --deep --sign - "$APP_DIR"

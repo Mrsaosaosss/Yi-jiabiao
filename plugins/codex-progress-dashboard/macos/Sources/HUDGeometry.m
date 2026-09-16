@@ -32,12 +32,12 @@ HUDLayout HUDLayoutForMetrics(HUDScreenMetrics metrics, HUDPresentationState sta
     layout.panelFrame = NSMakeRect(NSMidX(metrics.frame) - panelWidth / 2, top - panelHeight, panelWidth, panelHeight);
     layout.panelBounds = NSMakeRect(0, 0, panelWidth, panelHeight);
 
-    CGFloat compactWidth = layout.hasNotch ? MAX(240, layout.notchWidth + 152) : 240;
+    CGFloat compactWidth = layout.hasNotch ? MAX(240, layout.notchWidth + 168) : 240;
     CGFloat islandWidth = compactWidth;
-    CGFloat islandHeight = 40 + layout.notchHeight;
+    CGFloat islandHeight = layout.hasNotch ? layout.notchHeight : 40;
     if (state == HUDPresentationStatePeek) {
         islandWidth = MAX(compactWidth, 520);
-        islandHeight = 48 + layout.notchHeight;
+        islandHeight = layout.hasNotch ? layout.notchHeight + 28 : 48;
     } else if (state == HUDPresentationStateExpanded) {
         islandWidth = MAX(compactWidth, 520);
         islandHeight = 238 + layout.notchHeight;

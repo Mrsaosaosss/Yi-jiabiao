@@ -6,6 +6,7 @@
 @property(nonatomic, strong) HUDPresentationModel *presentation;
 @property(nonatomic) HUDPresentationState state;
 @property(nonatomic) CGFloat notchHeight;
+@property(nonatomic) CGFloat notchWidth;
 @property(nonatomic, copy) void (^primaryAction)(void);
 @property(nonatomic, copy) void (^dismissAction)(void);
 @property(nonatomic, copy) void (^taskAction)(NSUInteger index);

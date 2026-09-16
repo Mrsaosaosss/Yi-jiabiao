@@ -1,6 +1,6 @@
 {
   "name": "codex-progress-dashboard",
-  "version": "0.1.0+codex.20260916064458",
+  "version": "0.1.0+codex.20260916073710",
   "description": "A private, read-only live dashboard and Mac notch HUD for local Codex tasks.",
   "author": {
     "name": "Jiabiao"

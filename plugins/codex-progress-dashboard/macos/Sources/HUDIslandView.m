@@ -25,9 +25,14 @@
     [self setNeedsDisplay:YES];
 }
 
+- (void)setNotchWidth:(CGFloat)notchWidth {
+    _notchWidth = notchWidth;
+    [self setNeedsDisplay:YES];
+}
+
 - (NSBezierPath *)islandPath {
-    NSRect rect = NSInsetRect(self.bounds, 0.75, 0.75);
-    CGFloat radius = self.state == HUDPresentationStateExpanded ? 28 : 20;
+    NSRect rect = NSMakeRect(0, 0, self.bounds.size.width, MAX(0, self.bounds.size.height - 0.5));
+    CGFloat radius = self.state == HUDPresentationStateCompact ? 10 : (self.state == HUDPresentationStatePeek ? 16 : 28);
     radius = MIN(radius, rect.size.height / 2);
     NSBezierPath *path = [NSBezierPath bezierPath];
     [path moveToPoint:NSMakePoint(NSMinX(rect), NSMinY(rect))];
@@ -41,6 +46,24 @@
          controlPoint1:NSMakePoint(NSMinX(rect) + radius * 0.42, NSMaxY(rect))
          controlPoint2:NSMakePoint(NSMinX(rect), NSMaxY(rect) - radius * 0.42)];
     [path closePath];
+    return path;
+}
+
+- (NSBezierPath *)islandRimPath {
+    NSRect rect = NSMakeRect(0.5, 0, MAX(0, self.bounds.size.width - 1), MAX(0, self.bounds.size.height - 0.5));
+    CGFloat radius = self.state == HUDPresentationStateCompact ? 10 : (self.state == HUDPresentationStatePeek ? 16 : 28);
+    radius = MIN(radius, rect.size.height / 2);
+    NSBezierPath *path = [NSBezierPath bezierPath];
+    [path moveToPoint:NSMakePoint(NSMaxX(rect), NSMinY(rect))];
+    [path lineToPoint:NSMakePoint(NSMaxX(rect), NSMaxY(rect) - radius)];
+    [path curveToPoint:NSMakePoint(NSMaxX(rect) - radius, NSMaxY(rect))
+         controlPoint1:NSMakePoint(NSMaxX(rect), NSMaxY(rect) - radius * 0.42)
+         controlPoint2:NSMakePoint(NSMaxX(rect) - radius * 0.42, NSMaxY(rect))];
+    [path lineToPoint:NSMakePoint(NSMinX(rect) + radius, NSMaxY(rect))];
+    [path curveToPoint:NSMakePoint(NSMinX(rect), NSMaxY(rect) - radius)
+         controlPoint1:NSMakePoint(NSMinX(rect) + radius * 0.42, NSMaxY(rect))
+         controlPoint2:NSMakePoint(NSMinX(rect), NSMaxY(rect) - radius * 0.42)];
+    [path lineToPoint:NSMakePoint(NSMinX(rect), NSMinY(rect))];
     return path;
 }
 
@@ -80,50 +103,59 @@
     [[NSColor colorWithWhite:0.018 alpha:alpha] setFill];
     [path fill];
     [[NSColor colorWithWhite:1 alpha:0.12] setStroke];
-    path.lineWidth = 1;
-    [path stroke];
+    NSBezierPath *rimPath = self.islandRimPath;
+    rimPath.lineWidth = 1;
+    [rimPath stroke];
 
     NSColor *primary = NSColor.whiteColor;
     NSColor *secondary = [primary colorWithAlphaComponent:0.60];
     CGFloat y = self.notchHeight;
 
     if (self.state == HUDPresentationStateCompact) {
-        [self drawStatusDot:self.presentation.overallStatus rect:NSMakeRect(14, y + 15, 9, 9)];
+        CGFloat sideWidth = self.notchWidth > 0 ? (self.bounds.size.width - self.notchWidth) / 2 : self.bounds.size.width / 2;
+        CGFloat dotSize = 7;
+        [self drawStatusDot:self.presentation.overallStatus rect:NSMakeRect(11, (self.bounds.size.height - dotSize) / 2, dotSize, dotSize)];
         [self drawLabel:self.presentation.compactTitle
-                   rect:NSMakeRect(31, y + 9, 88, 22)
-                   font:[NSFont systemFontOfSize:12 weight:NSFontWeightSemibold]
+                   rect:NSMakeRect(25, (self.bounds.size.height - 18) / 2, MAX(40, sideWidth - 30), 18)
+                   font:[NSFont systemFontOfSize:11 weight:NSFontWeightSemibold]
                   color:primary
               alignment:NSTextAlignmentLeft];
         [self drawLabel:[self.presentation durationForTask:self.presentation.leadTask]
-                   rect:NSMakeRect(self.bounds.size.width - 77, y + 10, 62, 20)
-                   font:[NSFont monospacedDigitSystemFontOfSize:11 weight:NSFontWeightMedium]
+                   rect:NSMakeRect(self.bounds.size.width - sideWidth + 8, (self.bounds.size.height - 18) / 2, MAX(44, sideWidth - 19), 18)
+                   font:[NSFont monospacedDigitSystemFontOfSize:10.5 weight:NSFontWeightMedium]
                   color:secondary
               alignment:NSTextAlignmentRight];
         return;
     }
 
     if (self.state == HUDPresentationStatePeek) {
-        [self drawStatusDot:self.presentation.overallStatus rect:NSMakeRect(18, y + 18, 9, 9)];
-        [self drawLabel:[NSString stringWithFormat:@"%ld 个活跃", (long)self.presentation.activeCount]
-                   rect:NSMakeRect(35, y + 11, 92, 23)
-                   font:[NSFont systemFontOfSize:12 weight:NSFontWeightSemibold]
-                  color:primary
-              alignment:NSTextAlignmentLeft];
-        [self drawLabel:self.presentation.peekTitle
-                   rect:NSMakeRect(138, y + 7, 212, 19)
-                   font:[NSFont systemFontOfSize:11.5 weight:NSFontWeightSemibold]
-                  color:primary
-              alignment:NSTextAlignmentLeft];
-        [self drawLabel:self.presentation.peekProgress
-                   rect:NSMakeRect(138, y + 25, 250, 16)
-                   font:[NSFont systemFontOfSize:9.5 weight:NSFontWeightRegular]
-                  color:secondary
-              alignment:NSTextAlignmentLeft];
-        [self drawLabel:[self.presentation durationForTask:self.presentation.leadTask]
-                   rect:NSMakeRect(self.bounds.size.width - 77, y + 15, 62, 20)
-                   font:[NSFont monospacedDigitSystemFontOfSize:10.5 weight:NSFontWeightMedium]
-                  color:secondary
-              alignment:NSTextAlignmentRight];
+        if (self.notchHeight > 0 && self.notchWidth > 0) {
+            CGFloat sideWidth = (self.bounds.size.width - self.notchWidth) / 2;
+            CGFloat dotSize = 7;
+            [self drawStatusDot:self.presentation.overallStatus rect:NSMakeRect(13, (self.notchHeight - dotSize) / 2, dotSize, dotSize)];
+            [self drawLabel:[NSString stringWithFormat:@"%ld 个活跃", (long)self.presentation.activeCount]
+                       rect:NSMakeRect(27, (self.notchHeight - 18) / 2, MAX(54, sideWidth - 32), 18)
+                       font:[NSFont systemFontOfSize:10.5 weight:NSFontWeightSemibold]
+                      color:primary
+                  alignment:NSTextAlignmentLeft];
+            [self drawLabel:[self.presentation durationForTask:self.presentation.leadTask]
+                       rect:NSMakeRect(self.bounds.size.width - sideWidth + 10, (self.notchHeight - 18) / 2, MAX(50, sideWidth - 22), 18)
+                       font:[NSFont monospacedDigitSystemFontOfSize:10 weight:NSFontWeightMedium]
+                      color:secondary
+                  alignment:NSTextAlignmentRight];
+            NSString *detail = [NSString stringWithFormat:@"%@  ·  %@", self.presentation.peekTitle, self.presentation.peekProgress];
+            [self drawLabel:detail
+                       rect:NSMakeRect(22, self.notchHeight + 5, self.bounds.size.width - 44, 17)
+                       font:[NSFont systemFontOfSize:10.5 weight:NSFontWeightMedium]
+                      color:primary
+                  alignment:NSTextAlignmentCenter];
+        } else {
+            [self drawStatusDot:self.presentation.overallStatus rect:NSMakeRect(18, 19, 9, 9)];
+            [self drawLabel:[NSString stringWithFormat:@"%ld 个活跃", (long)self.presentation.activeCount] rect:NSMakeRect(35, 12, 92, 23) font:[NSFont systemFontOfSize:12 weight:NSFontWeightSemibold] color:primary alignment:NSTextAlignmentLeft];
+            [self drawLabel:self.presentation.peekTitle rect:NSMakeRect(138, 8, 212, 19) font:[NSFont systemFontOfSize:11.5 weight:NSFontWeightSemibold] color:primary alignment:NSTextAlignmentLeft];
+            [self drawLabel:self.presentation.peekProgress rect:NSMakeRect(138, 26, 250, 16) font:[NSFont systemFontOfSize:9.5] color:secondary alignment:NSTextAlignmentLeft];
+            [self drawLabel:[self.presentation durationForTask:self.presentation.leadTask] rect:NSMakeRect(self.bounds.size.width - 77, 16, 62, 20) font:[NSFont monospacedDigitSystemFontOfSize:10.5 weight:NSFontWeightMedium] color:secondary alignment:NSTextAlignmentRight];
+        }
         return;
     }
 

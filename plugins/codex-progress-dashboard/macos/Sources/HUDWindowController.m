@@ -162,6 +162,7 @@
     [self.panel setFrame:layout.panelFrame display:YES animate:NO];
     self.statusItem.visible = !layout.hasNotch;
     self.islandView.notchHeight = layout.notchHeight;
+    self.islandView.notchWidth = layout.notchWidth;
 
     BOOL reduceMotion = NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion;
     BOOL shouldAnimate = animated && !reduceMotion && !NSEqualRects(self.islandView.frame, NSZeroRect);

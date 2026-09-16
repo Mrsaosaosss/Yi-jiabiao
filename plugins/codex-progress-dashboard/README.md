@@ -23,11 +23,11 @@ The HUD menu can enable login startup. That option is off by default.
 
 On a Mac with a display notch, the HUD grows directly out of the physical notch. It has three states:
 
-- Compact shows the active count and lead-task timer.
-- Hover peek shows the lead task and current step.
+- Compact is exactly the height of the physical notch/menu-bar band. It uses only the left and right shoulders for the active count and lead-task timer, so it does not cover app content.
+- Hover peek extends only 28 points below the notch to show the lead task and current step.
 - Clicked detail shows up to three tasks with timers and changed-file counts.
 
-The transparent area around the island is click-through. Running and waiting tasks are shown first; any remaining slots are filled by the most recently requested Codex tasks. A non-notch display receives a top-center HUD and menu-bar fallback.
+The island is flush with the top screen edge and deliberately has no top rim, avoiding a visible seam above the notch. The transparent area around it is click-through. Running and waiting tasks are shown first; any remaining slots are filled by the most recently requested Codex tasks. A non-notch display receives a top-center HUD and menu-bar fallback.
 
 The full dashboard keeps active and recently completed work at the top. Historical idle and interrupted tasks remain available in the collapsed “Other tasks” section and through search or filters.
 

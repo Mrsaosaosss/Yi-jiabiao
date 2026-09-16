@@ -22,18 +22,18 @@ static void AssertTrue(BOOL value, NSString *message) {
 static HUDScreenMetrics NotchedMetrics(void) {
     HUDScreenMetrics metrics;
     metrics.frame = NSMakeRect(0, 0, 1470, 956);
-    metrics.visibleFrame = NSMakeRect(0, 0, 1470, 921);
+    metrics.visibleFrame = NSMakeRect(0, 0, 1470, 923);
     metrics.safeTop = 32;
-    metrics.auxiliaryLeftWidth = 643;
-    metrics.auxiliaryRightWidth = 643;
+    metrics.auxiliaryLeftWidth = 646;
+    metrics.auxiliaryRightWidth = 645;
     metrics.builtIn = YES;
     return metrics;
 }
 
 static void TestNotchMetrics(void) {
-    AssertNear(HUDNotchHeight(956, 921, 0), 34, @"menu-bar delta survives scaled-below-notch mode");
-    AssertNear(HUDNotchHeight(956, 921, 38), 38, @"safe area can provide the larger notch height");
-    AssertNear(HUDPhysicalNotchWidth(1470, 643, 643), 184, @"physical notch width uses auxiliary areas");
+    AssertNear(HUDNotchHeight(956, 923, 0), 32, @"menu-bar delta survives scaled-below-notch mode");
+    AssertNear(HUDNotchHeight(956, 923, 38), 38, @"safe area can provide the larger notch height");
+    AssertNear(HUDPhysicalNotchWidth(1470, 646, 645), 179, @"physical notch width uses auxiliary areas");
     AssertTrue(HUDScreenHasNotch(NotchedMetrics()), @"built-in screen with auxiliary areas is notched");
 
     HUDScreenMetrics external = NotchedMetrics();
@@ -51,7 +51,9 @@ static void TestLayout(void) {
     AssertNear(compact.panelFrame.size.height, 360, @"panel height remains fixed");
     AssertNear(NSMaxY(compact.panelFrame), NSMaxY(metrics.frame), @"panel is top anchored");
     AssertNear(compact.islandFrame.origin.y, 0, @"notched island begins at panel top");
-    AssertNear(compact.islandFrame.size.width, 336, @"compact width includes notch shoulders");
+    AssertNear(compact.islandFrame.size.width, 347, @"compact width includes two 84-point notch shoulders");
+    AssertNear(compact.islandFrame.size.height, compact.notchHeight, @"compact height exactly matches the physical notch");
+    AssertNear(peek.islandFrame.size.height - peek.notchHeight, 28, @"peek extends only 28 points below the notch");
     AssertTrue(peek.islandFrame.size.width > compact.islandFrame.size.width, @"peek expands horizontally");
     AssertTrue(expanded.islandFrame.size.height > peek.islandFrame.size.height, @"expanded grows downward");
     AssertNear(NSMidX(compact.islandFrame), NSMidX(compact.panelBounds), @"island stays centered");
@@ -92,11 +94,14 @@ static void TestPresentationAndHitTesting(void) {
     AssertTrue([presentation.tasks[1][@"title"] isEqualToString:@"最近任务"], @"presentation preserves server ordering");
     AssertTrue([[presentation fileCountForTask:presentation.tasks[0]] isEqualToString:@"12 个文件"], @"expanded file count is formatted");
 
-    HUDIslandView *view = [[HUDIslandView alloc] initWithFrame:NSMakeRect(0, 0, 240, 74)];
+    HUDIslandView *view = [[HUDIslandView alloc] initWithFrame:NSMakeRect(0, 0, 347, 32)];
     view.presentation = presentation;
+    view.notchHeight = 32;
+    view.notchWidth = 179;
     view.state = HUDPresentationStateCompact;
-    AssertTrue([view containsLocalPoint:NSMakePoint(120, 20)], @"island center accepts pointer input");
-    AssertTrue(![view containsLocalPoint:NSMakePoint(1, 73)], @"rounded transparent corner rejects pointer input");
+    AssertTrue([view containsLocalPoint:NSMakePoint(173, 0.1)], @"island reaches the exact screen-facing top edge");
+    AssertTrue([view containsLocalPoint:NSMakePoint(173, 16)], @"island center accepts pointer input");
+    AssertTrue(![view containsLocalPoint:NSMakePoint(1, 31)], @"rounded transparent corner rejects pointer input");
 }
 
 int main(void) {
